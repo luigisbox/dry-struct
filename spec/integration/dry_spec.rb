@@ -6,7 +6,7 @@ RSpec.describe Dry do
       struct_klass = Dry.Struct(name: "strict.string")
 
       struct = struct_klass.new(name: "Test")
-      expect(struct.attributes).to eql(name: "Test")
+      expect(struct.inner_attributes).to eql(name: "Test")
     end
 
     context "initializer block" do

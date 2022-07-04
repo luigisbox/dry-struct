@@ -93,7 +93,7 @@ module Dry
       #   ruby.celebrities[1].name #=> 'Aaron Patterson'
       #   ruby.celebrities[1].pseudonym #=> 'tenderlove'
       def attribute(name, type = Undefined, &block)
-        attributes(name => build_type(name, type, &block))
+        inner_attributes(name => build_type(name, type, &block))
       end
 
       # Add atributes from another struct
@@ -128,7 +128,7 @@ module Dry
             [:"#{key.name}?", key.type]
           end
         }.to_h
-        attributes(extracted_schema)
+        inner_attributes(extracted_schema)
       end
 
       # Adds an omittable (key is not required on initialization) attribute for this {Struct}
@@ -179,7 +179,7 @@ module Dry
       #   #      title: Constrained<Nominal<String> rule=[type?(String)]>
       #   #      author: Constrained<Nominal<String> rule=[type?(String)]>
       #   #    }> fn=Kernel.Hash>]>
-      def attributes(new_schema)
+      def inner_attributes(new_schema)
         keys = new_schema.keys.map { |k| k.to_s.chomp("?").to_sym }
         check_schema_duplication(keys)
 
@@ -192,7 +192,7 @@ module Dry
         direct_descendants = descendants.select { |d| d.superclass == self }
         direct_descendants.each do |d|
           inherited_attrs = new_schema.reject { |k, _| d.has_attribute?(k.to_s.chomp("?").to_sym) }
-          d.attributes(inherited_attrs)
+          d.inner_attributes(inherited_attrs)
         end
 
         self
@@ -246,22 +246,22 @@ module Dry
 
       # @param [Hash{Symbol => Object},Dry::Struct] attributes
       # @raise [Struct::Error] if the given attributes don't conform {#schema}
-      def new(attributes = default_attributes, safe = false, &block) # rubocop:disable Style/OptionalBooleanParameter
-        if attributes.is_a?(Struct)
-          if equal?(attributes.class)
-            attributes
+      def new(inner_attributes = default_attributes, safe = false, &block) # rubocop:disable Style/OptionalBooleanParameter
+        if inner_attributes.is_a?(Struct)
+          if equal?(inner_attributes.class)
+            inner_attributes
           else
             # This implicit coercion is arguable but makes sense overall
             # in cases there you pass child struct to the base struct constructor
             # User.new(super_user)
             #
             # We may deprecate this behavior in future forcing people to be explicit
-            new(attributes.to_h, safe, &block)
+            new(inner_attributes.to_h, safe, &block)
           end
         elsif safe
-          load(schema.call_safe(attributes) { |output = attributes| return yield output })
+          load(schema.call_safe(inner_attributes) { |output = inner_attributes| return yield output })
         else
-          load(schema.call_unsafe(attributes))
+          load(schema.call_unsafe(inner_attributes))
         end
       rescue Types::CoercionError => e
         raise Error, "[#{self}.new] #{e}", e.backtrace
@@ -286,9 +286,9 @@ module Dry
       end
 
       # @api private
-      def load(attributes)
+      def load(inner_attributes)
         struct = allocate
-        struct.__send__(:initialize, attributes)
+        struct.__send__(:initialize, inner_attributes)
         struct
       end
 
@@ -482,7 +482,7 @@ module Dry
 
           class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
             def #{key}                      # def email
-              @attributes[#{key.inspect}]   #   @attributes[:email]
+              @inner_attributes[#{key.inspect}]   #   @attributes[:email]
             end                             # end
           RUBY
         end

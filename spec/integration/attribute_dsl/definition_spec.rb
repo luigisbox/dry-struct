@@ -196,7 +196,7 @@ RSpec.describe Dry::Struct, method: ".attribute" do
   it "doesn't define readers if methods are present" do
     class Test::Foo < Dry::Struct
       def age
-        "#{@attributes[:age]} years old"
+        "#{@inner_attributes[:age]} years old"
       end
     end
 
@@ -216,7 +216,7 @@ RSpec.describe Dry::Struct, method: ".attribute" do
 
       struct = Test::Foo.new(foo: "value")
       expect(struct.foo).to eql("value")
-      expect(struct.attributes).not_to have_key(:bar)
+      expect(struct.inner_attributes).not_to have_key(:bar)
       expect(Test::Foo.has_attribute?(:bar)).to be true
 
       struct = Test::Foo.new(foo: "value", bar: "another value")
@@ -233,7 +233,7 @@ RSpec.describe Dry::Struct, method: ".attribute" do
 
       struct = Test::Foo.new(foo: "value")
       expect(struct.foo).to eql("value")
-      expect(struct.attributes).not_to have_key(:nested)
+      expect(struct.inner_attributes).not_to have_key(:nested)
       expect(Test::Foo.has_attribute?(:nested)).to be true
     end
   end

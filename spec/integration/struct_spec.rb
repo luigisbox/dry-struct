@@ -368,7 +368,7 @@ RSpec.describe Dry::Struct do
         value = Test::Task[user: "Jane", hash: "abc", attributes: %w[name]]
 
         expect(value.hash).to be_a(Integer)
-        expect(value.attributes)
+        expect(value.inner_attributes)
           .to eql(user: "Jane", hash: "abc", attributes: %w[name])
         expect(value[:hash]).to eql("abc")
         expect(value[:attributes]).to eql(%w[name])

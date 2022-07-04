@@ -7,8 +7,8 @@ module Dry
     def pretty_print(pp)
       klass = self.class
       pp.group(1, "#<#{klass.name || klass.inspect}", ">") do
-        pp.seplist(@attributes.keys, proc { pp.text "," }) do |column_name|
-          column_value = @attributes[column_name]
+        pp.seplist(@inner_attributes.keys, proc { pp.text "," }) do |column_name|
+          column_value = @inner_attributes[column_name]
           pp.breakable " "
           pp.group(1) do
             pp.text column_name.to_s

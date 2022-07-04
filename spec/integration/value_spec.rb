@@ -15,7 +15,7 @@ RSpec.describe "Dry::Struct::Value", :suppress_deprecations do
       end
 
       class SuperUser < User
-        attributes(root: "strict.bool")
+        inner_attributes(root: "strict.bool")
       end
     end
   end

@@ -27,9 +27,9 @@ module Dry
   #   Test = Dry.Struct(expected: Types::String) { schema(schema.strict) }
   #   Test[expected: "foo", unexpected: "bar"]
   #   #=> Dry::Struct::Error: [Test.new] unexpected keys [:unexpected] in Hash input
-  def self.Struct(attributes = Dry::Core::Constants::EMPTY_HASH, &block)
+  def self.Struct(inner_attributes = Dry::Core::Constants::EMPTY_HASH, &block)
     Class.new(Dry::Struct) do
-      attributes.each { |a, type| attribute a, type }
+      inner_attributes.each { |a, type| attribute a, type }
       module_eval(&block) if block
     end
   end
@@ -108,7 +108,7 @@ module Dry
 
     loader.setup
 
-    include ::Dry::Equalizer(:__attributes__, inspect: false, immutable: true)
+    include ::Dry::Equalizer(:__inner_attributes__, inspect: false, immutable: true)
 
     # {Dry::Types::Hash::Schema} subclass with specific behaviour defined for
     # @return [Dry::Types::Hash::Schema]
@@ -118,13 +118,13 @@ module Dry
     defines :abstract_class
     abstract
 
-    # @!attribute [Hash{Symbol => Object}] attributes
-    attr_reader :attributes
-    alias_method :__attributes__, :attributes
+    # @!attribute [Hash{Symbol => Object}] inner_attributes
+    attr_reader :inner_attributes
+    alias_method :__inner_attributes__, :inner_attributes
 
-    # @param [Hash, #each] attributes
-    def initialize(attributes)
-      @attributes = attributes
+    # @param [Hash, #each] inner_attributes
+    def initialize(inner_attributes)
+      @inner_attributes = inner_attributes
     end
 
     # Retrieves value of previously defined attribute by its' `name`
@@ -145,7 +145,7 @@ module Dry
     #   rom_n_roda[:title] #=> 'Web Development with ROM and Roda'
     #   rom_n_roda[:subtitle] #=> nil
     def [](name)
-      @attributes.fetch(name) { raise MissingAttributeError, name }
+      @inner_attributes.fetch(name) { raise MissingAttributeError, name }
     end
 
     # Converts the {Dry::Struct} to a hash with keys representing
@@ -167,7 +167,7 @@ module Dry
     #     #=> {title: 'Web Development with ROM and Roda', subtitle: nil}
     def to_h
       self.class.schema.each_with_object({}) do |key, result|
-        result[key.name] = Hashify[self[key.name]] if attributes.key?(key.name)
+        result[key.name] = Hashify[self[key.name]] if inner_attributes.key?(key.name)
       end
     end
     # TODO: remove in 2.0
@@ -199,7 +199,7 @@ module Dry
         skip_missing: true,
         resolve_defaults: false
       )
-      self.class.load(__attributes__.merge(new_attributes))
+      self.class.load(__inner_attributes__.merge(new_attributes))
     rescue Types::SchemaError, Types::MissingKeyError, Types::UnknownKeysError => e
       raise Error, "[#{self}.new] #{e}"
     end
@@ -208,7 +208,7 @@ module Dry
     # @return [String]
     def inspect
       klass = self.class
-      attrs = klass.attribute_names.map { |key| " #{key}=#{@attributes[key].inspect}" }.join
+      attrs = klass.attribute_names.map { |key| " #{key}=#{@inner_attributes[key].inspect}" }.join
       "#<#{klass.name || klass.inspect}#{attrs}>"
     end
 
@@ -216,7 +216,7 @@ module Dry
     #
     # @api private
     def deconstruct_keys(_keys)
-      attributes
+      inner_attributes
     end
   end
 end

@@ -8,7 +8,7 @@ RSpec.describe Dry::Struct, method: ".abstract" do
       transform_keys(&:to_sym)
 
       def key?(key)
-        attributes.key?(key)
+        inner_attributes.key?(key)
       end
     end
   end

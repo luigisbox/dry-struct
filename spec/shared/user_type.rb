@@ -26,7 +26,7 @@ RSpec.shared_context "user type" do
       end
 
       class SuperUser < User
-        attributes(root: "bool")
+        inner_attributes(root: "bool")
       end
     end
   end
